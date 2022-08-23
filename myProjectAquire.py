@@ -9,7 +9,7 @@ def get_connection(db, user = username, host = host, password = password):
 def new_telco_data():
     return pd.read_sql('''
 select * from customers
-join customer_churn using(customer_id)
+left join customer_churn using(customer_id)
 join customer_contracts using(customer_id)
 join customer_details using(customer_id)
 join customer_payments using(customer_id)
@@ -27,3 +27,5 @@ def get_telco_data():
         df = new_telco_data()
         df.to_csv(filename)
         return df
+def get_old_telco():
+    return pd.read_csv('oldtelco.csv')

@@ -11,6 +11,8 @@ def prep_telco(telco):
     df = telco
     #in the line below I am getting rid of all columns in which values are identical in order to avoid an excessively large and confusing dataframe
     df = df.T.drop_duplicates().T
+    
+    df['total_charges'] = df.total_charges.astype(str)
     #In the following 13 lines I am encoding my categorical variables so that I can use this dataframe in our classification methods without problems
    
     df['is_female'] = df.gender.map({'Female': 1, 'Male': 0})
@@ -33,15 +35,19 @@ def prep_telco(telco):
     
     #in the line below I am dropping all columns I have just made new encoded columns for.
     
-    df = df.drop(['gender','partner','dependents','phone_service','paperless_billing','churn', 'contract_type', 'internet_service_type', 'multiple_lines','online_security', 'online_backup', 'device_protection', 'tech_support', 'streaming_tv','streaming_movies' ], axis = 1)
+    drops = ['gender','partner','dependents','phone_service','paperless_billing','churn', 'contract_type', 'internet_service_type', 'multiple_lines','online_security', 'online_backup', 'device_protection', 'tech_support', 'streaming_tv','streaming_movies','churn_month','signup_date','total_charges']
+    for x in drops:
+        if x in df.columns:
+            df = df.drop(columns = x, axis =1)
     
     #In the line below I am turning object valuetypes into floats, as well as cleaning up some weird vales that were not allowing me to do so. there were only 11 values that were incorrect for total_charges so I set them to 0.
     
     df['monthly_charges'] = df.monthly_charges.astype(float)
-    df.total_charges = df.total_charges.str.strip()
-    df[df['total_charges'].str.len() == 0] = 0
-    df['total_charges'] = df['total_charges'].astype(float)
-    df[['monthly_charges', 'total_charges']] = scaler.fit_transform(df[['monthly_charges', 'total_charges']])
+   # df.total_charges = df.total_charges.str.strip()
+   # df[df['total_charges'].str.len() == 0] = 0
+   # df['total_charges'] = df['total_charges'].astype(float)
+    #df[['monthly_charges', 'total_charges']] = scaler.fit_transform(df[['monthly_charges', 'total_charges']])
+    df[['monthly_charges']] = scaler.fit_transform(df[['monthly_charges']])
    
     
     #After looking at the data I realized most of my nulls were coming from peole who did not have internet and it seems this resulted in many columns refering to their streaming capabilities and device protections to be NaN's
@@ -67,3 +73,11 @@ def feat_dist(df):
             plt.hist(df[col])
             plt.title(f'Distribution of {col}')
             plt.show()
+            
+def feat_dist_churn(df):
+    for col in df.columns:
+        if df[col].dtype != 'object':
+            pd.crosstab(df[col], df.did_churn).plot.bar()
+            plt.title(f'Distribution of {col} on churn')
+            plt.show()
+            
